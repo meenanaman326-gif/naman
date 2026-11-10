@@ -1,39 +1,66 @@
-# StudyList — Student task planner
+# StudyList — Student Task Planner
 
-A locally runnable, mobile-responsive web app built with **HTML, CSS and vanilla JavaScript**. No React Native, Flutter or other framework is used.
+Task 2 implements the main screens. **Task 3 implements and verifies the complete create → validate → list → persist flow**, with empty states and recovery actions.
+
+Built using **HTML, CSS and vanilla JavaScript**. No React Native or Flutter is used. Responsive web app; no account or backend required.
 
 ## Run locally
-
-Download this repository, open a terminal in its folder, then run:
 
 ```sh
 python3 -m http.server 8000
 ```
 
-Open http://localhost:8000 in a browser. Python 3 is only the static development server; all application logic runs in JavaScript. No install, API keys, build or backend is required.
+Open http://localhost:8000. Python 3 serves the files; the application runs in the browser. Do not open the page using a file URL for consistent localStorage behavior.
 
-## Five main screens
+## Screens and features
 
-1. **Today**: tasks due today and overdue; completion progress.
-2. **Add task**: required title, optional notes, date, time and priority.
-3. **Task details**: review, edit, complete/restore, or confirm deletion.
-4. **All tasks**: all pending tasks with title search and priority filtering.
-5. **Completed**: finished tasks with Undo to restore them.
+- Today: tasks due today or overdue, plus completion progress.
+- Add/Edit task: title, notes, optional date/time and priority.
+- Task details: review, edit, complete, restore, and confirm deletion.
+- All tasks: pending tasks, title search and priority filtering.
+- Completed: completed tasks with Undo.
 
-Edit reuses the Add task form with existing values. Navigation uses hash routes and supports browser Back. Bottom navigation on mobile becomes a sidebar on desktop.
+Bottom navigation on phones becomes a sidebar on wider screens. Existing Task 2 records use the same localStorage key. New installations start empty, without seeded tasks.
 
-## Data and accessibility
+## Task 3 requirements
 
-Tasks persist in localStorage on the current browser and origin. First launch shows two sample tasks. No account, cloud sync or notifications. Clearing browser data removes saved tasks. Storage failures preserve the active form and display a message. Do not use this prototype for critical records.
+| Requirement | Implementation |
+| --- | --- |
+| Complete feature path | Add task → validate → save → show in Today or All tasks → open details |
+| Validation | Whitespace-only titles rejected; title maximum 160 characters; notes maximum 4,000; valid priority, calendar date and 24-hour time; time requires a date |
+| Inline errors | Field-specific messages, aria-invalid and focus on the first invalid field; entries retained |
+| Empty states | Nothing due today, no pending tasks, no completed tasks, search/filter has no matches |
+| Recovery | Clear filters resets query and priority; add-task action from empty lists |
+| Local persistence | localStorage retains create/edit/complete/restore/delete changes across reloads |
+| State integrity | Stored records are checked for schema, dates, completion timestamps and duplicate IDs |
+| Failed write | Error status shown; in-memory tasks and active form are preserved |
 
-Semantic headings, field labels, keyboard focus, screen-reader status announcements, text priority labels, blank-title validation, empty states and native delete confirmation dialog are included. Supports small phone screens and desktop layouts.
+Tasks without a date and tasks due in the future are visible in All tasks immediately after creation. Past dates are allowed and labelled Overdue. Clearing browser data deletes local tasks; storage is per browser/profile/origin and is not cloud sync. Changes are not live-synchronized between open tabs. If saved data is malformed, the app displays a load warning; export/recovery of damaged data is outside this prototype.
 
-## Validation
+## Automated checks
 
-- JavaScript syntax checked using `node --check app.js`.
-- Automated DOM-stub checks passed: initial samples, save, complete, restore, escaped task text, all screens render, and failed storage leaves tasks unchanged.
-- Visual browser/device QA has not been performed.
-- Manual acceptance flow: add task → open details → edit → complete → Completed → Undo → reload and verify persistence → delete and cancel/confirm.
-- Filter by priority and search; try a blank title; check keyboard navigation and phone viewport.
+Node.js 18+ is needed only for tests:
 
-Prepared for Naman Meena's primary application screens assignment.
+```sh
+node --check app.js
+node --check task-state.js
+node --test test-state.cjs
+```
+
+Six test groups verify normalisation, blank/long input, date/time boundaries, create/list and reload persistence, complete/restore/delete, failed writes, and stored-record validation. Tests use pure validation functions and a small DOM stub; they do not replace browser testing.
+
+## Browser verification
+
+Checked the following in Chromium on 10 November 2026:
+
+1. Open an empty Completed screen.
+2. Submit Add task with an empty title: inline error, no navigation.
+3. Enter a title, notes and High priority; save and verify the task in Today.
+4. Reload: task remains present.
+5. Open details, complete, then Undo and verify it in All tasks.
+6. Search for a nonexistent title: No matching tasks and Clear filters appear.
+7. Clear filters: all pending tasks return.
+
+Phone-width layout was visually checked during Task 2; this is not a native Android/iOS build. Screen-reader hardware and every mobile browser have not been tested.
+
+Prepared for Naman Meena's application implementation assignment.
